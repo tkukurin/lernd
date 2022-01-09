@@ -1,33 +1,38 @@
-#!/usr/bin/env python3
-
-__author__ = "Ingvaras Merkys"
-
 from typing import NamedTuple, Tuple
 
 
-class Constant(NamedTuple):
-    name: str
+class Constant(str):
+  pass
 
 
 class Predicate(NamedTuple):
-    name: str
-    arity: int
+  name: str
+  arity: int
+
+  def __str__(self):
+    return f'{name}/{arity}'
 
 
 class RuleTemplate(NamedTuple):
-    v: int  # number of exist. quantified vars allowed in the clause
-    int: bool  # whether intensional predicates are allowed
+  v: int  # number of exist. quantified vars allowed in the clause
+  int: bool  # whether intensional predicates are allowed
 
 
 class Variable(NamedTuple):
-    name: str
+  name: str
 
 
 class Atom(NamedTuple):
-    pred: Predicate
-    vars: Tuple[Variable, ...]
+  pred: Predicate
+  vars: Tuple[Variable, ...]
 
 
 class GroundAtom(NamedTuple):
-    pred: Predicate
-    consts: Tuple[Constant, ...]
+  pred: Predicate
+  consts: Tuple[Constant, ...]
+
+
+class ClausesAndRule(NamedTuple):
+  clauses: OrderedSet[Clause]
+  rule: RuleTemplate
+
