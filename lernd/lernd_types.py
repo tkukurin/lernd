@@ -1,4 +1,6 @@
 from typing import NamedTuple, Tuple
+from ordered_set import OrderedSet
+# from lernd.classes import Clause
 
 
 class Constant(str):
@@ -31,8 +33,4 @@ class GroundAtom(NamedTuple):
   pred: Predicate
   consts: Tuple[Constant, ...]
 
-
-class ClausesAndRule(NamedTuple):
-  clauses: OrderedSet[Clause]
-  rule: RuleTemplate
 

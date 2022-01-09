@@ -9,8 +9,8 @@ from typing import Dict, Iterable, List, Tuple, Optional, NamedTuple
 
 from ordered_set import OrderedSet
 
-from .classes import Clause, LanguageModel, ProgramTemplate
-from .lernd_types import Atom, Predicate, RuleTemplate, Variable
+from lernd.classes import Clause, LanguageModel, ProgramTemplate
+from lernd.lernd_types import Atom, Predicate, RuleTemplate, Variable
 
 
 def f_generate(t: ProgramTemplate, lm: LanguageModel) -> Dict[Predicate, ClausePair]:

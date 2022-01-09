@@ -43,7 +43,7 @@ def setup_even():
   ground_zero = str2ground_atom('zero(0)')
   background = [
     ground_zero,
-    *str2ground_atom(f'succ({i},{i + 1})') for i in range(10)
+    *(str2ground_atom(f'succ({i},{i + 1})') for i in range(10))
   ]
   positive = [str2ground_atom(f'even({i})') for i in range(0, 11, 2)]
   negative = [str2ground_atom(f'even({i})') for i in range(1, 10, 2)]

@@ -1,5 +1,5 @@
 import numpy as np
-import tensorflow as tf
+#import tensorflow as tf
 import jax
 import jax.numpy as jnp
 from ordered_set import OrderedSet
@@ -31,7 +31,7 @@ class Inferrer:
     self.forward_chaining_steps = program_template.forward_chaining_steps
     self.xc_tensors = self._init_tensors()
 
-  def _init_tensors(self) -> Dict[Predicate, List[List[tf.Tensor]]]:
+  def _init_tensors(self) -> Dict[Predicate, List[List[jnp.DeviceArray]]]:
     print('Inferrer initializing xc tensors...')
     tensors = defaultdict(list)
     for pred, clauses in self.clauses.items():

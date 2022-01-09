@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-
-__author__ = "Ingvaras Merkys"
-
 import argparse
 import os
 from pathlib import Path

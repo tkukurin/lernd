@@ -6,10 +6,10 @@ import typing
 from collections import OrderedDict
 
 import numpy as np
-import tensorflow as tf
+#import tensorflow as tf
 
-from .classes import GroundAtoms
-from .lernd_types import Atom, Constant, GroundAtom, Predicate, Variable
+#from lernd.classes import GroundAtoms
+from lernd.lernd_types import Atom, Constant, GroundAtom, Predicate, Variable
 
 
 def str2pred(s: str) -> Predicate:
@@ -67,7 +67,7 @@ def ground_atom2str(ground_atom: GroundAtom) -> str:
 # Other
 def get_ground_atom_probs(
     a: tf.Tensor,
-    ground_atoms: GroundAtoms) -> typing.OrderedDict[GroundAtom, np.float32]:
+    ground_atoms) -> typing.OrderedDict[GroundAtom, np.float32]:
   a = a.numpy()
   ground_atom_probs = OrderedDict()
   for ground_atom in ground_atoms.all_ground_atom_generator():

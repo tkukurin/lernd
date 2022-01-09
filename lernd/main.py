@@ -17,11 +17,11 @@ import jax.numpy as jnp
 from matplotlib import pyplot as plt
 from ordered_set import OrderedSet
 
-from .classes import Clause, ILP, ProgramTemplate
-from .lernd_loss import Lernd
-from .lernd_types import Predicate, RuleTemplate, GroundAtom
-from .util import ground_atom2str, get_ground_atom_probs
-from .generator import ClausePair
+from lernd.classes import Clause, ILP, ProgramTemplate
+from lernd.lernd_loss import Lernd
+from lernd.lernd_types import Predicate, RuleTemplate, GroundAtom
+from lernd.util import ground_atom2str, get_ground_atom_probs
+from lernd.generator import ClausePair
 
 
 def output_to_files(
@@ -103,7 +103,7 @@ def main_loop(
     clause_prob_threshold: float = 0.1,
     plot_loss: bool = False,
     save_output: bool = False):
-  ts = dt.datetime.__format__('%y-%m-%d_%H-%M')
+  ts = dt.datetime.now().__format__('%y-%m-%d_%H-%M')
   task_id = f'{ilp_problem.name}_{ts}'
   mb = mini_batch < 1.0
   lernd_model = Lernd(ilp_problem, program_template, mini_batch=mini_batch)

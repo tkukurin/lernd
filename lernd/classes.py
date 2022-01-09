@@ -1,11 +1,20 @@
+from __future__ import annotations
+
 import dataclasses as dcl
 import itertools
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Tuple, Union, NamedTuple
 
 from ordered_set import OrderedSet
 
-from lernd import util as u
-from .lernd_types import Atom, Constant, GroundAtom, Predicate, RuleTemplate, Variable
+
+import lernd.util as u
+
+from lernd.lernd_types import Atom, Constant, GroundAtom, Predicate, RuleTemplate, Variable
+
+
+class ClausesAndRule(NamedTuple):
+  clauses: OrderedSet[Clause]
+  rule: RuleTemplate
 
 
 class Clause:
@@ -55,7 +64,7 @@ class ProgramTemplate:
 
 @dcl.dataclass
 class ILP:
-  problem_name: str  # L, B, P, N
+  name: str  # L, B, P, N
   language_model: LanguageModel
   background_axioms: List[GroundAtom]
   positive_examples: List[GroundAtom]
