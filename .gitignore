@@ -39,10 +39,14 @@ even/
 
 # Testing
 .pytest_cache/
+.hypothesis/
 .coverage
 htmlcov/
 .mypy_cache/
 .ruff_cache/
+
+# Claude Code
+.claude/
 
 # Output files
 *.png
