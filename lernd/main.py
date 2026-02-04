@@ -67,14 +67,14 @@ def extract_definitions(
     indices = np.nonzero(pred_probs >= clause_prob_threshold)
     if tau2 is not None:
       for index_tuple in zip(indices[0], indices[1]):
-        item['confidence'] = pred_probs[index_tuple].numpy().astype(float)
+        item['confidence'] = float(pred_probs[index_tuple])
         item['definition'] = [
-            str(clauses_1[index_tuple[0]]), str(clauses_2[index_tuple[1]])
+            str(clauses_1[int(index_tuple[0])]), str(clauses_2[int(index_tuple[1])])
         ]
     else:
       for index in indices[0]:
-        item['confidence'] = pred_probs[index][0].numpy().astype(float)
-        item['definition'] = [str(clauses_1[index])]
+        item['confidence'] = float(pred_probs[index][0])
+        item['definition'] = [str(clauses_1[int(index)])]
     output.append(item)
   return json.dumps(output, indent=2)
 
@@ -111,12 +111,16 @@ def main_loop(
   losses = []
   opt = optax.rmsprop(learning_rate)
   opt_state = opt.init(weights)
+
+  def loss_fn(w):
+    valuation = lernd_model(w)
+    return lernd_model.loss(valuation, w)
+
   for i in range(1, steps + 1):
-    valuation = lernd_model(weights)
-    loss, grad = jax.value_and_grad(lernd_model.loss)(
-        valuation, weights)
+    loss, grad = jax.value_and_grad(loss_fn)(weights)
     updates, opt_state = opt.update(grad, opt_state)
     weights = optax.apply_updates(weights, updates)
+    valuation = lernd_model(weights)
 
     losses.append(loss)
     if i % 10 == 0:
