@@ -1,6 +1,0 @@
-ordered-set==4.0.2
-jax
-optax
-matplotlib==3.2.1
-ray==1.0.0
-psutil==5.7.2

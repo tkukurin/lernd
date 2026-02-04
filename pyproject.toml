@@ -1,0 +1,83 @@
+[project]
+name = "lernd"
+version = "0.2.0"
+description = "Learning Explanatory Rules from Noisy Data - JAX implementation"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+requires-python = ">=3.12"
+authors = [
+    { name = "Toni Kukurin", email = "tkukurin@gmail.com" }
+]
+keywords = ["ilp", "inductive-logic-programming", "jax", "machine-learning", "differentiable-programming"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "jax>=0.9.0",
+    "optax>=0.2.6",
+    "ordered-set>=4.1.0",
+    "numpy>=2.2",
+    "tqdm>=4.67",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-xdist>=3.5",
+    "hypothesis>=6.125",
+    "ruff>=0.11",
+    "mypy>=1.15",
+]
+viz = [
+    "matplotlib>=3.10",
+]
+distributed = [
+    "ray>=2.43",
+    "psutil>=7.0",
+]
+
+[project.scripts]
+lernd = "lernd.main:main_loop"
+
+[project.urls]
+Repository = "https://github.com/tkukurin/lernd"
+Original = "https://github.com/crunchiness/lernd"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-xdist>=3.5",
+    "hypothesis>=6.125",
+    "ruff>=0.11",
+    "mypy>=1.15",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
