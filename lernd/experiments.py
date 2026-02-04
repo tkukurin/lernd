@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 import argparse
-import os
-#import tensorflow as tf
 
 from lernd.classes import (
-    GroundAtoms, ILP, LanguageModel, MaybeGroundAtom, ProgramTemplate)
-from lernd.main import main_loop
+  ILP,
+  GroundAtoms,
+  LanguageModel,
+  MaybeGroundAtom,
+  ProgramTemplate,
+)
 from lernd.lernd_types import Constant, RuleTemplate
+from lernd.main import main_loop
 from lernd.util import ground_atom2str, str2ground_atom, str2pred
 
 
@@ -94,9 +97,6 @@ def setup_predecessor():
 
 
 if __name__ == '__main__':
-  # Disable Tensorflow logs
-  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
   parser = argparse.ArgumentParser()
   parser.add_argument(
       'problem',
@@ -105,7 +105,6 @@ if __name__ == '__main__':
       help='Problem to solve')
   args = parser.parse_args()
 
-  #with tf.device('/CPU:0'):
   if args.problem == 'predecessor':
     ilp_problem, program_template = setup_predecessor()
     steps = 100

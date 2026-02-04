@@ -1,16 +1,20 @@
-import numpy as np
-#import tensorflow as tf
-import jax
-import jax.numpy as jnp
-from ordered_set import OrderedSet
-
 from collections import defaultdict
 from typing import Dict, List, OrderedDict, Tuple
 
-from lernd.classes import Clause, GroundAtoms, LanguageModel, MaybeGroundAtom, ProgramTemplate
-from lernd.lernd_types import Constant, GroundAtom, Predicate, RuleTemplate
-
+import jax
+import jax.numpy as jnp
+import numpy as np
+from ordered_set import OrderedSet
 from tqdm import trange
+
+from lernd.classes import (
+  Clause,
+  GroundAtoms,
+  LanguageModel,
+  MaybeGroundAtom,
+  ProgramTemplate,
+)
+from lernd.lernd_types import Constant, GroundAtom, Predicate, RuleTemplate
 
 ClauseAndRule = Tuple[OrderedSet[Clause], RuleTemplate]
 ClausesDict = Dict[Predicate, Tuple[ClauseAndRule, ClauseAndRule]]
@@ -31,21 +35,21 @@ class Inferrer:
     self.forward_chaining_steps = program_template.forward_chaining_steps
     self.xc_tensors = self._init_tensors()
 
-  def _init_tensors(self) -> Dict[Predicate, List[List[jnp.DeviceArray]]]:
+  def _init_tensors(self) -> Dict[Predicate, List[List[jax.Array]]]:
     print('Inferrer initializing xc tensors...')
     tensors = defaultdict(list)
-    for pred, clauses in self.clauses.items():
-      for clauses_, tau in clauses:
-        if tau is not None:
+    for pred, clause_pair in self.clauses.items():
+      for clauses_and_rule in clause_pair:
+        if clauses_and_rule.rule is not None:
           tensors[pred].append([
-              make_xc_tensor(xc, self.lm.constants, tau, self.ground_atoms)
-              for xc in [make_xc(c, self.ground_atoms) for c in clauses_]])
+              make_xc_tensor(xc, self.lm.constants, clauses_and_rule.rule, self.ground_atoms)
+              for xc in [make_xc(c, self.ground_atoms) for c in clauses_and_rule.clauses]])
     return tensors
 
   def f_infer(
       self,
-      a: jnp.DeviceArray,
-      weights: OrderedDict[Predicate, jnp.DeviceArray]) -> jnp.DeviceArray:
+      a: jax.Array,
+      weights: OrderedDict[Predicate, jax.Array]) -> jax.Array:
     softmaxes = {}
     for pred in self.xc_tensors.keys():
       pred_weights = jnp.reshape(weights[pred], [-1])
@@ -68,10 +72,10 @@ class Inferrer:
           c_p = f1jps
 
         bt += jnp.sum(
-          jnp.multiply(jnp.stack(c_p, softmaxes[pred])),
+          jnp.multiply(jnp.stack(c_p), softmaxes[pred]),
           axis=0)
       # f_amalgamate - probabilistic sum (t-conorm)
-      a = a + bt - jnp.multiply(a, by)
+      a = a + bt - jnp.multiply(a, bt)
     return a
 
 
@@ -106,16 +110,16 @@ def make_xc_tensor(
     xc: List[Tuple[GroundAtom, List[Tuple[int, int]]]],
     constants: List[Constant],
     tau: RuleTemplate,
-    ground_atoms: GroundAtoms) -> jnp.DeviceArray:
+    ground_atoms: GroundAtoms) -> jax.Array:
   """Returns a tensor of indices."""
   n = ground_atoms.len
   v = tau[0]
   w = len(constants) ** v
-  xc_tensor = jnp.zeros((n, w, 2), dtype=np.int32)
+  xc_tensor = jnp.zeros((n, w, 2), dtype=jnp.int32)
   for ground_atom, xk_indices in xc:
     index = ground_atoms.get_ground_atom_index(ground_atom)
     if xk_indices:
-      xc_tensor[index] = pad_indices(xk_indices, w)
+      xc_tensor = xc_tensor.at[index].set(jnp.array(pad_indices(xk_indices, w)))
   return xc_tensor
 
 
@@ -127,11 +131,11 @@ def pad_indices(
   return [indices[i] for i in range(nidxs)] + [(0, 0) for _ in range(rest)]
 
 
-def fc(a: jnp.DeviceArray, xc_tensor: jnp.DeviceArray) -> jnp.DeviceArray:
+def fc(a: jax.Array, xc_tensor: jax.Array) -> jax.Array:
   x1 = xc_tensor[:, :, 0]
   x2 = xc_tensor[:, :, 1]
   y1 = a[x1]
   y2 = a[x2]
   # fuzzy_and - product t-norm, element-wise multiplication
-  return jnp.maximum(jnp.multiply(y1, y2), axis=1)
+  return jnp.max(jnp.multiply(y1, y2), axis=1)
 

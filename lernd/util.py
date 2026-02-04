@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import re
 import typing
-
 from collections import OrderedDict
 
 import numpy as np
-#import tensorflow as tf
 
 #from lernd.classes import GroundAtoms
 from lernd.lernd_types import Atom, Constant, GroundAtom, Predicate, Variable
@@ -61,25 +59,16 @@ def ground_atom2str(ground_atom: GroundAtom) -> str:
   pred, consts = ground_atom
   pred_name, pred_arity = pred
   assert pred_arity == len(consts), 'Too many arguments for the predicate!'
-  return '{0}({1})'.format(pred_name, ','.join([c.name for c in consts]))
+  return '{0}({1})'.format(pred_name, ','.join([str(c) for c in consts]))
 
 
 # Other
 def get_ground_atom_probs(
-    a: tf.Tensor,
-    ground_atoms) -> typing.OrderedDict[GroundAtom, np.float32]:
-  a = a.numpy()
+    a,
+    ground_atoms) -> typing.OrderedDict[GroundAtom, float]:
   ground_atom_probs = OrderedDict()
   for ground_atom in ground_atoms.all_ground_atom_generator():
     i = ground_atoms.get_ground_atom_index(ground_atom)
-    p = a[i]
+    p = float(a[i])
     ground_atom_probs[ground_atom] = p
   return ground_atom_probs
-
-
-def softmax(weights: typing.Union[tf.Tensor, tf.Variable]) -> tf.Tensor:
-  """Element-wise softmax"""
-  shape = weights.shape
-  flat_weights = tf.reshape(weights, [-1])
-  flat_probs = tf.nn.softmax(flat_weights)
-  return tf.reshape(flat_probs[:, np.newaxis], shape)

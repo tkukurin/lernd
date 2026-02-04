@@ -2,10 +2,9 @@
 import os
 import unittest
 
-import numpy as np
-import tensorflow as tf
-import jax.numpy as jnp
 import jax
+import jax.numpy as jnp
+import numpy as np
 
 from lernd import classes as c
 from lernd import generator as g
@@ -14,9 +13,6 @@ from lernd import lernd_loss as l
 from lernd import util as u
 from lernd.classes import GroundAtoms, LanguageModel, MaybeGroundAtom, ProgramTemplate
 from lernd.lernd_types import Atom, Constant, Predicate, RuleTemplate, Variable
-
-# Disable Tensorflow logs
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 class TestUtil(unittest.TestCase):
@@ -164,7 +160,7 @@ class TestInferrer(unittest.TestCase):
                                 [(1, 6), (2, 8)], [(3, 5), (4, 7)], [(3, 6),
                                                                      (4, 8)]])
     result = i.make_xc_tensor(xc, constants, tau, ground_atoms)
-    self.assertEqual(result.numpy().tolist(), expected_tensor.tolist())
+    self.assertEqual(np.asarray(result).tolist(), expected_tensor.tolist())
 
   def test_fc(self):
     target_pred = u.str2pred('r/2')
@@ -177,7 +173,7 @@ class TestInferrer(unittest.TestCase):
     ground_atoms = GroundAtoms(language_model, program_template)
 
     a = jnp.array(
-      [0, 1, 0.9, 0, 0, 0.1, 0, 0.2, 0.8, 0, 0, 0, 0]))
+      [0, 1, 0.9, 0, 0, 0.1, 0, 0.2, 0.8, 0, 0, 0, 0])
     clause = c.Clause.from_str('r(X,Y)<-p(X,Z), q(Z,Y)')
     tau = RuleTemplate(1, False)
     expected_a_apostrophe = np.array(
@@ -188,12 +184,8 @@ class TestInferrer(unittest.TestCase):
         xc, language_model.constants, tau, ground_atoms)
     a_apostrophe = i.fc(a, xc_tensor)
 
-    try:
-      jnp.testing.assert_array_almost_equal(
-          a_apostrophe, expected_a_apostrophe)
-      self.assertTrue(True)
-    except AssertionError:
-      self.assertTrue(False)
+    np.testing.assert_array_almost_equal(
+        np.asarray(a_apostrophe), expected_a_apostrophe)
 
 
 class TestLerndLoss(unittest.TestCase):

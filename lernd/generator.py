@@ -3,9 +3,8 @@ from __future__ import annotations
 import functools as ft
 import itertools as it
 import string
-
 from operator import add
-from typing import Dict, Iterable, List, Tuple, Optional, NamedTuple
+from typing import Dict, Iterable, List, NamedTuple, Optional, Tuple
 
 from ordered_set import OrderedSet
 
@@ -16,7 +15,7 @@ from lernd.lernd_types import Atom, Predicate, RuleTemplate, Variable
 def f_generate(t: ProgramTemplate, lm: LanguageModel) -> Dict[Predicate, ClausePair]:
   preds_intensional = t.preds_aux + [lm.target]
   return {
-    p: ClausePair.cl(preds_intensional, lm.preds_ext, pred, *t.rules[p])
+    p: ClausePair.cl(preds_intensional, lm.preds_ext, p, *t.rules[p])
     for p in preds_intensional
   }
 
@@ -31,22 +30,22 @@ class ClausePair(NamedTuple):
       preds_ext: List[Predicate],
       pred: Predicate,
       tau1: Optional[RuleTemplate],
-      tau2: Optional[RuleTemplate]) -> OrderedSet[Clause]:
+      tau2: Optional[RuleTemplate]) -> ClausePair:
     c1 = ClausesAndRule.cl(preds_int, preds_ext, pred, tau1)
     c2 = ClausesAndRule.cl(preds_int, preds_ext, pred, tau2)
-    return ClausesAndRule(c1, c2)
+    return ClausePair(c1, c2)
 
 
 class ClausesAndRule(NamedTuple):
   clauses: OrderedSet[Clause]
-  rule: RuleTemplate
+  rule: Optional[RuleTemplate]
 
   @staticmethod
   def cl(
       preds_int: List[Predicate],
       preds_ext: List[Predicate],
       pred: Predicate,
-      tau: Optional[RuleTemplate]) -> OrderedSet[Clause]:
+      tau: Optional[RuleTemplate]) -> ClausesAndRule:
     """Generates all possible clauses adhering to the restrictions.
 
     1. Only clauses of atoms involving free variables (no constants)
@@ -58,7 +57,7 @@ class ClausesAndRule(NamedTuple):
     7. None with an intensional predicate in the body if int flag is 0.
     """
     if tau is None:
-      return OrderedSet()
+      return ClausesAndRule(OrderedSet(), None)
 
     v, int_ = tau
     pred_arity = pred[1]
@@ -79,9 +78,9 @@ class ClausesAndRule(NamedTuple):
       a2s = (Atom(p2, tuple(c)) for c in it.product(variables, repeat=p2[1]))
       for atom1, atom2 in it.product(a1s, a2s):
         clause = Clause(head, (atom1, atom2))
-        if any(ClauseRule.unsafe(clause),
-               ClauseRule.circular(clause),
-               ClauseRule.int_flag(clause, int_, preds_int)):
+        if any([ClauseRule.unsafe(clause),
+                ClauseRule.circular(clause),
+                ClauseRule.int_flag(clause, int_, preds_int)]):
           continue
         clauses.add(clause)
     return ClausesAndRule(clauses, tau)
@@ -103,6 +102,29 @@ class ClauseRule:
 
   @staticmethod
   def int_flag(clause: Clause, int_: bool, preds: List[Predicate]) -> bool:
-    # if intensional predicate required:
-    return not int_ or any(pred in preds for pred, vars in clause.body)
+    # When int_=True: require at least one intensional predicate in body
+    # When int_=False: don't allow intensional predicates in body
+    has_intensional = any(pred in preds for pred, vars in clause.body)
+    if int_:
+      return not has_intensional  # Filter if no intensional (require at least one)
+    return has_intensional  # Filter if any intensional (don't allow)
+
+
+# Wrapper functions for backward compatibility with tests
+def check_clause_unsafe(clause: Clause) -> bool:
+  return ClauseRule.unsafe(clause)
+
+
+def check_circular(clause: Clause) -> bool:
+  return ClauseRule.circular(clause)
+
+
+# Convenience function for clause generation (used by tests)
+def cl(
+    preds_int: List[Predicate],
+    preds_ext: List[Predicate],
+    pred: Predicate,
+    tau: Optional[RuleTemplate]) -> OrderedSet[Clause]:
+  result = ClausesAndRule.cl(preds_int, preds_ext, pred, tau)
+  return result.clauses if result else OrderedSet()
 

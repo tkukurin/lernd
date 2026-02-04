@@ -2,14 +2,19 @@ from __future__ import annotations
 
 import dataclasses as dcl
 import itertools
-from typing import Dict, Iterable, List, Optional, Tuple, Union, NamedTuple
+from typing import Dict, Iterable, List, NamedTuple, Optional, Tuple, Union
 
 from ordered_set import OrderedSet
 
-
 import lernd.util as u
-
-from lernd.lernd_types import Atom, Constant, GroundAtom, Predicate, RuleTemplate, Variable
+from lernd.lernd_types import (
+  Atom,
+  Constant,
+  GroundAtom,
+  Predicate,
+  RuleTemplate,
+  Variable,
+)
 
 
 class ClausesAndRule(NamedTuple):
@@ -38,10 +43,13 @@ class Clause:
 
   @classmethod
   def from_str(cls, s: str):
-    head, body = s.split('<-')
-    head = u.str2atom(head)
-    body = map(str.strip, body.split(','))
-    return cls(u.str2atom(head), tuple(map(u.str2atom, body)))
+    head_str, body_str = s.split('<-')
+    head = u.str2atom(head_str.strip())
+    # Split body atoms by "), " to handle commas inside atom arguments
+    import re
+    body_atoms = re.findall(r'[a-z]+[0-9]*\([^)]*\)', body_str)
+    body = [u.str2atom(b.strip()) for b in body_atoms]
+    return cls(head, tuple(body))
 
   def to_latex(self) -> str:
     return '${0}\\leftarrow {1}$'.format(

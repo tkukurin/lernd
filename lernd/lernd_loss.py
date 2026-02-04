@@ -1,15 +1,13 @@
 import itertools as it
 from typing import Dict, List, Optional, OrderedDict, Tuple
 
-#import tensorflow as tf
 import jax
 import jax.numpy as jnp
-
 import numpy as np
 from ordered_set import OrderedSet
 
 import lernd.util as u
-from lernd.classes import GroundAtoms, ILP, LanguageModel, ProgramTemplate
+from lernd.classes import ILP, GroundAtoms, LanguageModel, ProgramTemplate
 from lernd.generator import f_generate
 from lernd.inferrer import Inferrer
 from lernd.lernd_types import GroundAtom, Predicate, RuleTemplate
@@ -21,7 +19,7 @@ def all_variables(weights):
 
 def f_convert(
     background_axioms: List[GroundAtom],
-    ground_atoms: GroundAtoms) -> jnp.DeviceArray:
+    ground_atoms: GroundAtoms) -> jax.Array:
   # non-differentiable operation
   # order must be the same as in ground_atoms
   all_ground_atoms = ground_atoms.all_ground_atom_generator()
@@ -46,7 +44,7 @@ def get_ground_atoms(
 def make_lambda(
     positive_examples: List[GroundAtom],
     negative_examples: List[GroundAtom],
-    ground_atoms: GroundAtoms) -> Tuple[jnp.DeviceArray, jnp.DeviceArray]:
+    ground_atoms: GroundAtoms) -> Tuple[jax.Array, jax.Array]:
   example_indices = []
   example_values = []
   for ground_atom in positive_examples:
@@ -128,15 +126,15 @@ class Lernd:  # TODO convert to jax-style nn
     return self._ground_atoms
 
   @property
-  def big_lambda(self) -> Tuple[jnp.DeviceArray, jnp.DeviceArray]:
+  def big_lambda(self) -> Tuple[jax.Array, jax.Array]:
     return self._big_lambda
 
-  def __call__(self, weights: OrderedDict[Predicate, jnp.DeviceArray]):
+  def __call__(self, weights: OrderedDict[Predicate, jax.Array]):
     return self._inferrer.f_infer(
         self._initial_valuation, weights)
 
   def loss(
-      self, valuation, weights: OrderedDict[Predicate, jnp.DeviceArray]
+      self, valuation, weights: OrderedDict[Predicate, jax.Array]
       ) -> float:
     alphas, small_lambdas = self._big_lambda
     # Extracting predictions for given (positive and negative) examples (f_extract)

@@ -1,5 +1,7 @@
 from typing import NamedTuple, Tuple
+
 from ordered_set import OrderedSet
+
 # from lernd.classes import Clause
 
 
@@ -12,7 +14,7 @@ class Predicate(NamedTuple):
   arity: int
 
   def __str__(self):
-    return f'{name}/{arity}'
+    return f'{self.name}/{self.arity}'
 
 
 class RuleTemplate(NamedTuple):

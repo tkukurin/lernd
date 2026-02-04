@@ -7,21 +7,18 @@ import typing
 from collections import OrderedDict
 from typing import Dict, Tuple
 
-import numpy as np
-# import tensorflow as tf
-
-import optax
 import jax
 import jax.numpy as jnp
-
+import numpy as np
+import optax
 from matplotlib import pyplot as plt
 from ordered_set import OrderedSet
 
-from lernd.classes import Clause, ILP, ProgramTemplate
-from lernd.lernd_loss import Lernd
-from lernd.lernd_types import Predicate, RuleTemplate, GroundAtom
-from lernd.util import ground_atom2str, get_ground_atom_probs
+from lernd.classes import ILP, Clause, ProgramTemplate
 from lernd.generator import ClausePair
+from lernd.lernd_loss import Lernd
+from lernd.lernd_types import GroundAtom, Predicate, RuleTemplate
+from lernd.util import get_ground_atom_probs, ground_atom2str
 
 
 def output_to_files(
@@ -44,7 +41,7 @@ def output_to_files(
 def generate_weight_matrices(
     clauses: Dict[Predicate, ClausePair],
     stddev: float = 0.05) -> typing.OrderedDict[Predicate,
-        jnp.DeviceArray]:
+        jax.Array]:
   rule_weights = OrderedDict()
   key = jax.random.PRNGKey(seed=42)
   for pred, ((clauses_1, tau1), (clauses_2, tau2)) in clauses.items():
@@ -55,7 +52,7 @@ def generate_weight_matrices(
 
 def extract_definitions(
     clauses: Dict[Predicate, ClausePair],
-    weights: typing.OrderedDict[Predicate, jnp.DeviceArray],
+    weights: typing.OrderedDict[Predicate, jax.Array],
     clause_prob_threshold: float = 0.1) -> str:
   """JSON of target and aux predicates from weights."""
   output = []
@@ -118,8 +115,8 @@ def main_loop(
     valuation = lernd_model(weights)
     loss, grad = jax.value_and_grad(lernd_model.loss)(
         valuation, weights)
-    updates, opt_state = optimizer.update(grads, opt_state)
-    params = optax.apply_updates(params, updates)
+    updates, opt_state = opt.update(grad, opt_state)
+    weights = optax.apply_updates(weights, updates)
 
     losses.append(loss)
     if i % 10 == 0:
